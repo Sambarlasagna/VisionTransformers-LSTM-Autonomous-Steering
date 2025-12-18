@@ -20,6 +20,9 @@ model = SteeringCNN().to(device)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
+best_loss = float("inf")
+SAVE_PATH = "cnn_model.pth"
+
 # Training loop
 for epoch in range(5):
     total_loss = 0.0
@@ -38,3 +41,8 @@ for epoch in range(5):
         total_loss += loss.item()
 
     print(f"Epoch {epoch+1}, Loss: {total_loss/len(loader):.5f}")
+
+    # Save the model if the loss is the best we've seen so far
+    if total_loss < best_loss:
+        best_loss = total_loss
+        torch.save(model.state_dict(), SAVE_PATH)
