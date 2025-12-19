@@ -7,7 +7,7 @@ from model_cnn import SteeringCNN
 # ---------------- CONFIG ----------------
 RUN_DIR = "run"
 IMG_DIR = os.path.join(RUN_DIR, "IMG")
-MODEL_PATH = "cnn_model.pth"
+MODEL_PATH = "cnn_delta_model.pth"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # ----------------------------------------
 
@@ -51,22 +51,28 @@ def draw_steering(frame, angle):
                 0.8, (0, 255, 0), 2)
 
 # ---------------- INFERENCE LOOP ----------------
+current_steering = 0.0  
+
 for img_name in image_files:
     img_path = os.path.join(IMG_DIR, img_name)
     frame = cv2.imread(img_path)
 
     processed = preprocess(frame)
-    processed = processed.unsqueeze(0).to(DEVICE)  # (1, 3, 224, 224)
+    processed = processed.unsqueeze(0).to(DEVICE)
 
     with torch.no_grad():
-        steering = model(processed).item()
+        delta = model(processed).item()
 
-    print(f"{img_name} → {steering:.6f}")
+    current_steering += delta
+    current_steering = np.clip(current_steering, -1.0, 1.0)
 
-    draw_steering(frame, steering)
-    cv2.imshow("Udacity Run – CNN Steering", frame)
+    print(f"{img_name} → Δ: {delta:.6f} | Steering: {current_steering:.6f}")
+
+    draw_steering(frame, current_steering)
+    cv2.imshow("Udacity Run – CNN Delta Steering", frame)
 
     if cv2.waitKey(50) & 0xFF == ord('q'):
         break
+
 
 cv2.destroyAllWindows()

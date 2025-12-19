@@ -21,7 +21,7 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 best_loss = float("inf")
-SAVE_PATH = "cnn_model.pth"
+SAVE_PATH = "cnn_delta_model.pth"
 
 # Training loop
 for epoch in range(5):
