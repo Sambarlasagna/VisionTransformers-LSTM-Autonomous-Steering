@@ -63,8 +63,10 @@ for img_name in image_files:
     with torch.no_grad():
         delta = model(processed).item()
 
-    current_steering += delta
+    delta *= 0.7
+    current_steering = 0.95 * current_steering + delta
     current_steering = np.clip(current_steering, -1.0, 1.0)
+
 
     print(f"{img_name} → Δ: {delta:.6f} | Steering: {current_steering:.6f}")
 
