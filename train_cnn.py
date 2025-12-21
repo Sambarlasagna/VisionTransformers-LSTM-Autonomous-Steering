@@ -11,7 +11,7 @@ IMG_DIR = DATASET_DIR + r"\IMG"
 
 # Dataset
 dataset = UdacityDrivingDataset(CSV_PATH, IMG_DIR)
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
+loader = DataLoader(dataset, batch_size=32, shuffle=False)
 
 # Model
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -24,7 +24,7 @@ best_loss = float("inf")
 SAVE_PATH = "cnn_delta_model.pth"
 
 # Training loop
-for epoch in range(5):
+for epoch in range(10):
     total_loss = 0.0
 
     for images, angles in loader:

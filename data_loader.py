@@ -6,47 +6,49 @@ import pandas as pd
 import numpy as np
 
 class UdacityDrivingDataset(Dataset):
-    def __init__(self, csv_file, img_dir, transform=None):
-        """
-        Args:
-            csv_file (str): Path to driving_log.csv
-            img_dir (str): Path to IMG folder
-            transform (callable, optional): Optional image transforms
-        """
-        self.data = pd.read_csv(csv_file, header=None)
-        self.data.columns = [
+    def __init__(self, csv_file, img_dir):
+        self.img_dir = img_dir
+        df = pd.read_csv(csv_file, header=None)
+        df.columns = [
             "center", "left", "right",
             "steering", "throttle", "brake", "speed"
         ]
-        self.img_dir = img_dir
-        self.transform = transform
-        self.steering_values = self.data["steering"].values.astype(np.float32)
 
+        STEERING_OFFSET = 0.2
+        self.samples = []
+
+        for _, row in df.iterrows():
+            self.samples.append((row["center"], row["steering"]))
+            self.samples.append((row["left"], row["steering"] + STEERING_OFFSET))
+            self.samples.append((row["right"], row["steering"] - STEERING_OFFSET))
+
+        self.steering_values = np.array(
+            [s[1] for s in self.samples],
+            dtype=np.float32
+        )
 
     def __len__(self):
-        return len(self.data)
+        return len(self.samples) - 1
 
     def __getitem__(self, idx):
-            row = self.data.iloc[idx]
+        idx = idx + 1  # ensure idx-1 valid
 
-            img_name = os.path.basename(row["center"])
-            img_path = os.path.join(self.img_dir, img_name)
+        img_path, steering = self.samples[idx]
+        prev_steering = self.steering_values[idx - 1]
 
-            image = cv2.imread(img_path)
-            if image is None:
-                raise FileNotFoundError(f"Image not found: {img_path}")
+        image = cv2.imread(os.path.join(self.img_dir, os.path.basename(img_path)))
+        if image is None:
+            raise FileNotFoundError(img_path)
 
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = cv2.resize(image, (224, 224))
-            image = image.astype(np.float32) / 255.0
-            image = torch.tensor(image).permute(2, 0, 1)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, (224, 224))
+        image = image.astype(np.float32) / 255.0
+        image = torch.tensor(image).permute(2, 0, 1)
 
-            current_steering = self.steering_values[idx]
-            if idx == 0:
-                delta = 0.0
-            else:
-                delta = current_steering - self.steering_values[idx - 1]
+        delta = steering - prev_steering
+        return image, torch.tensor(delta, dtype=torch.float32)
 
-            delta = torch.tensor(delta, dtype=torch.float32)
-            return image, delta
+
+
+
 
