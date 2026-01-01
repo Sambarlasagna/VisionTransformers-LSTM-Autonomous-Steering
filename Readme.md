@@ -124,7 +124,3 @@ Extend to reinforcement learning or simulation-based control
 - NumPy
 
 - Matplotlib
-
-# 📄 Summary
-
-This project demonstrates a complete end-to-end autonomous steering pipeline, from data preprocessing and model training to evaluation and visualization. It highlights how deep learning models can learn control policies directly from visual input using imitation learning.
